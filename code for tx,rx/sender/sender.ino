@@ -6,9 +6,9 @@
 */
 #include <esp_now.h>
 #include <WiFi.h>
-
+// [DEFAULT] ESP32 Board MAC Address: b4:8a:0a:8c:f9:e0
 // REPLACE WITH YOUR RECEIVER MAC Address
-uint8_t broadcastAddress[] = {0x64, 0xe8, 0x33, 0x8b, 0x8e, 0x50}; //esp 32 xiao board mac address
+uint8_t broadcastAddress[] = {0xb4, 0x8a, 0x0a, 0x8c, 0xf9, 0xe0}; //Match with Reciever Device MAC Address
 
 // Structure example to send data
 // Must match the receiver structure
@@ -61,7 +61,7 @@ void setup() {
  
 void loop() {
   // Set values to send
-  strcpy(myData.a, "THIS IS A CHAR");
+  strcpy(myData.a, "esp ok");
   myData.b = random(1,20);
   myData.c = 1.2;
   myData.d = false;
