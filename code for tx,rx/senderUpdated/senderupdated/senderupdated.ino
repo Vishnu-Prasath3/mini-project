@@ -1,17 +1,12 @@
-/*
-  Rui Santos & Sara Santos - Random Nerd Tutorials
-  Complete project details at https://RandomNerdTutorials.com/esp-now-esp32-arduino-ide/
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
+
 #include <esp_now.h>
 #include <WiFi.h>
 #include <FastLED.h>
 
-#define NUM_LEDS 60 // Adjust this to the number of LEDs in your strip
-#define LED_PIN 6
-
+#define LED_PIN     5
+#define NUM_LEDS    300
 CRGB leds[NUM_LEDS];
+const int reedSwitchPin = 2;
 // [DEFAULT] ESP32 Board MAC Address: b4:8a:0a:8c:f9:e0
 // REPLACE WITH YOUR RECEIVER MAC Address
 uint8_t broadcastAddress[] = {0xb4, 0x8a, 0x0a, 0x8c, 0xf9, 0xe0}; //Match with Reciever Device MAC Address
@@ -29,17 +24,19 @@ typedef struct struct_message {
 struct_message myData;
 
 esp_now_peer_info_t peerInfo;
-
 // callback when data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   Serial.print("\r\nLast Packet Send Status:\t");
   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
 }
+
+
  
 void setup() {
   // Init Serial Monitor
   Serial.begin(115200);
-  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
+  pinMode(reedSwitchPin, INPUT_PULLUP);
+  FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
 
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
@@ -66,34 +63,35 @@ void setup() {
   }
 }
  
-void weared(){
-
-}
-
-void removed(){
-
-}
-
 void loop() {
   // Set values to send
-  strcpy(myData.a, "esp ok"); 
+  strcpy(myData.a, "esp ok");
   myData.b = random(1,20);
   myData.c = 1.2;
   myData.d = false;
-  
+  int sensorState = digitalRead(reedSwitchPin);
+
+sensorState == LOW?myData.d=true:myData.d=false;
+
+  delay(100); // Adjust the delay as needed
+
+
+
+///sensorState == LOW?myData.d=true:myData.d=false;
+for (int i = 0; i <= 299; i++) {
+    leds[i] = CRGB ( 0, 0, 255);
+    FastLED.show();
+    
+  }
+
   // Send message via ESP-NOW
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
    
-  for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CHSV(i * 256 / NUM_LEDS, 255, 255);
-  }
-  FastLED.show();
-
   if (result == ESP_OK) {
     Serial.println("Sent with success");
   }
   else {
     Serial.println("Error sending the data");
   }
-  delay(2000);
+  delay(100);
 }

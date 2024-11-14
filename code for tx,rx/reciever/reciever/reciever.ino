@@ -8,6 +8,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
+
 // Structure example to receive data
 // Must match the sender structure
 typedef struct struct_message {
@@ -34,15 +35,25 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   Serial.print("Bool: ");
   Serial.println(myData.d);
   Serial.println();
+  myData.d==true?
+}
+void relayOn(){
+int current=millis();
+
+delay(1000);
+digitalWrite(relaypin,HIGH);
 }
  
+
+
+
 void setup() {
   // Initialize Serial Monitor
   Serial.begin(115200);
   
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
-
+ int relaypin=2;
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
