@@ -1,12 +1,7 @@
-/*
-  Rui Santos & Sara Santos - Random Nerd Tutorials
-  Complete project details at https://RandomNerdTutorials.com/esp-now-esp32-arduino-ide/  
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
 
 #include <esp_now.h>
 #include <WiFi.h>
+#define LED 2
 
 
 // Structure example to receive data
@@ -24,6 +19,7 @@ struct_message myData;
 // callback function that will be executed when data is received
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&myData, incomingData, sizeof(myData));
+  
   Serial.print("Bytes received: ");
   Serial.println(len);
   Serial.print("Char: ");
@@ -35,30 +31,20 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   Serial.print("Bool: ");
   Serial.println(myData.d);
   Serial.println();
-  myData.d==true?
+  digitalWrite(LED,myData.d?HIGH:LOW);
 }
-void relayOn(){
-int current=millis();
-
-delay(1000);
-digitalWrite(relaypin,HIGH);
-}
- 
-
-
 
 void setup() {
   // Initialize Serial Monitor
   Serial.begin(115200);
-  
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
- int relaypin=2;
+  pinMode(LED,OUTPUT);
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
     return;
-  }
+     }
   
   // Once ESPNow is successfully Init, we will register for recv CB to
   // get recv packer info

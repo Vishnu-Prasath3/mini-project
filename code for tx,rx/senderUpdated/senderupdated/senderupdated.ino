@@ -3,10 +3,11 @@
 #include <WiFi.h>
 #include <FastLED.h>
 
-#define LED_PIN     5
-#define NUM_LEDS    300
+#define LED_PIN  16 // pin number 16 where connected
+#define NUM_LEDS  16
 CRGB leds[NUM_LEDS];
-const int reedSwitchPin = 2;
+const int reedSwitchPin = 17;
+const int capIn=18; //capacitive touch pin 
 // [DEFAULT] ESP32 Board MAC Address: b4:8a:0a:8c:f9:e0
 // REPLACE WITH YOUR RECEIVER MAC Address
 uint8_t broadcastAddress[] = {0xb4, 0x8a, 0x0a, 0x8c, 0xf9, 0xe0}; //Match with Reciever Device MAC Address
@@ -35,9 +36,10 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 void setup() {
   // Init Serial Monitor
   Serial.begin(115200);
-  pinMode(reedSwitchPin, INPUT_PULLUP);
-  FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
-
+  pinMode(reedSwitchPin, INPUT);
+  pinMode(capIn, INPUT);
+  // FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS);
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
 
@@ -61,6 +63,8 @@ void setup() {
     Serial.println("Failed to add peer");
     return;
   }
+
+
 }
  
 void loop() {
@@ -72,17 +76,8 @@ void loop() {
   int sensorState = digitalRead(reedSwitchPin);
 
 sensorState == LOW?myData.d=true:myData.d=false;
-
+Serial.println(sensorState);
   delay(100); // Adjust the delay as needed
-
-
-
-///sensorState == LOW?myData.d=true:myData.d=false;
-for (int i = 0; i <= 299; i++) {
-    leds[i] = CRGB ( 0, 0, 255);
-    FastLED.show();
-    
-  }
 
   // Send message via ESP-NOW
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
@@ -94,4 +89,10 @@ for (int i = 0; i <= 299; i++) {
     Serial.println("Error sending the data");
   }
   delay(100);
+ for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CRGB::Red;
+  }
+
+  FastLED.show();
+
 }
