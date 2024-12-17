@@ -1,56 +1,47 @@
+#include <NimBLEDevice.h>
+#include <BleMouse.h>
+#include <Wire.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
 
-#include <esp_now.h>
-#include <WiFi.h>
-#define LED 2
-
-
-// Structure example to receive data
-// Must match the sender structure
-typedef struct struct_message {
-    char a[32];
-    int b;
-    float c;
-    bool d;
-} struct_message;
-
-// Create a struct_message called myData
-struct_message myData;
-
-// callback function that will be executed when data is received
-void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
-  memcpy(&myData, incomingData, sizeof(myData));
-  
-  Serial.print("Bytes received: ");
-  Serial.println(len);
-  Serial.print("Char: ");
-  Serial.println(myData.a);
-  Serial.print("Int: ");
-  Serial.println(myData.b);
-  Serial.print("Float: ");
-  Serial.println(myData.c);
-  Serial.print("Bool: ");
-  Serial.println(myData.d);
-  Serial.println();
-  digitalWrite(LED,myData.d?HIGH:LOW);
-}
+// Initialize the BLE Mouse and MPU6050
+BleMouse bleMouse;
+Adafruit_MPU6050 mpu;
 
 void setup() {
-  // Initialize Serial Monitor
   Serial.begin(115200);
-  // Set device as a Wi-Fi Station
-  WiFi.mode(WIFI_STA);
-  pinMode(LED,OUTPUT);
-  // Init ESP-NOW
-  if (esp_now_init() != ESP_OK) {
-    Serial.println("Error initializing ESP-NOW");
-    return;
-     }
-  
-  // Once ESPNow is successfully Init, we will register for recv CB to
-  // get recv packer info
-  esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
-}
- 
-void loop() {
+  Serial.println("Starting BLE Mouse and MPU6050");
 
+  // Start BLE Mouse
+  bleMouse.begin();
+
+  // Start MPU6050
+  if (!mpu.begin()) {
+    Serial.println("Failed to start MPU6050!");
+    while (1);
+  }
+  
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  mpu.setGyroRange(MPU6050_RANGE_2000_DEG);
+  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+}
+
+void loop() {
+  if (bleMouse.isConnected()) {
+    // Reading MPU6050 data
+    sensors_event_t a, g, temp;
+    mpu.getEvent(&a, &g, &temp);
+    
+    // Map accelerometer data to mouse movement (this is just an example)
+    int16_t mouseX = map(a.acceleration.x, -8, 8, -127, 127);
+    int16_t mouseY = map(a.acceleration.y, -8, 8, -127, 127);
+
+    // Move the mouse
+    bleMouse.move(mouseX, mouseY);
+
+    // Print the values for debugging
+    Serial.print("Mouse X: "); Serial.print(mouseX); Serial.print(" ");
+    Serial.print("Mouse Y: "); Serial.println(mouseY);
+  }
+  delay(100);
 }
